@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  topics        Topic[]
+  studyCards    StudyCard[]
+  feedback      Feedback[]
+  learningPlans LearningPlan[]
+}
+
+model Topic {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studyCards    StudyCard[]
+  learningPlans LearningPlan[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@unique([userId, title])
+}
+
+model StudyCard {
+  id            String    @id @default(cuid())
+  question      String
+  answer        String
+  explanation   String?
+  difficulty    String    @default("medium") // easy, medium, hard
+  topicId       String
+  topic         Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedback      Feedback[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Feedback {
+  id            String    @id @default(cuid())
+  cardId        String
+  card          StudyCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status        String    // "understood", "needs_review", "incorrect"
+  rating        Int?      // 1-5 star rating
+  notes         String?
+  reviewedAt    DateTime  @default(now())
+  
+  @@unique([cardId, userId])
+}
+
+model LearningPlan {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId       String
+  topic         Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  planDate      DateTime  // Date for which the plan is created
+  cardIds       String[]  // Array of study card IDs to review
+  focusAreas    String[]  // Topics that need more focus
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}

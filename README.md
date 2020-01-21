@@ -1,36 +1,194 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Personalized Learning Platform 📚
 
-## Getting Started
+An AI-powered adaptive learning platform that generates study cards based on user input and adjusts the daily learning plan based on feedback.
 
-First, run the development server:
+## Features ✨
 
+- **AI-Generated Study Cards**: Automatically generate study cards for any topic using OpenAI
+- **Flip Card Interface**: Interactive card design with question/answer reveal
+- **Smart Feedback System**: Track performance with status (understood, needs review, incorrect)
+- **Adaptive Learning Plans**: Daily study plans generated based on performance and areas needing improvement
+- **Progress Tracking**: Monitor your learning journey with card progress
+
+## Tech Stack
+
+- **Frontend**: Next.js 16, React 19, Tailwind CSS 4
+- **Backend**: Serverless API routes (Vercel Functions)
+- **Database**: PostgreSQL with Prisma ORM
+- **AI**: OpenAI GPT-4 for content generation
+- **UI Components**: Sonner for notifications
+
+## Prerequisites
+
+- Node.js 18+ 
+- PostgreSQL database (local or cloud like Vercel Postgres, Railway, Neon)
+- OpenAI API key
+
+## Installation
+
+1. **Clone the repository**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd app-learning-personalization
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Install dependencies**
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Configure environment variables**
+Create `.env.local` file:
+```bash
+# Database Configuration
+DATABASE_URL="postgresql://user:password@localhost:5432/study_cards_db"
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# OpenAI API
+OPENAI_API_KEY="your-openai-api-key"
 
-## Learn More
+# App Configuration  
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="generate-a-random-secret"
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. **Set up the database**
+```bash
+# Create database tables
+npx prisma migrate dev --name init
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Generate Prisma client
+npx prisma generate
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+5. **Run the development server**
+```bash
+npm run dev
+```
 
-## Deploy on Vercel
+Visit http://localhost:3000 in your browser.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## How to Use
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 1. Create a Topic
+- Enter a topic you want to study (e.g., "React Hooks", "Spanish Verbs")
+- Optionally add a description with specific areas to focus on
+- Click "Generate Study Cards"
+
+### 2. Study
+- View generated study cards with questions and answers
+- Click a card to flip between question and answer
+- Review the explanation for better understanding
+
+### 3. Provide Feedback
+After studying each card, provide feedback:
+- **I got it wrong**: Mark if your answer was incorrect
+- **Need more practice**: Mark if you're unsure
+- **I understood**: Mark if you fully understand the concept
+
+### 4. Review Your Plan
+- The system automatically generates your study plan for tomorrow
+- Focus on cards that need more practice and areas of difficulty
+- Review newly incorrect cards first
+
+## Project Structure
+
+```
+├── app/
+│   ├── api/               # Serverless API routes
+│   │   ├── cards/         # Study card endpoints
+│   │   ├── feedback/      # Feedback submission
+│   │   ├── learning-plan/ # Daily plan generation
+│   │   └── topics/        # Topic management
+│   ├── study/[id]/        # Study page for topic
+│   ├── page.tsx           # Dashboard
+│   └── layout.tsx         # Root layout
+├── components/            # React components
+│   ├── StudyCard.tsx      # Study card component
+│   ├── TopicForm.tsx      # Topic creation form
+│   ├── TopicItem.tsx      # Topic list item
+│   └── LearningPlanPreview.tsx
+├── lib/
+│   ├── prisma.ts          # Prisma client
+│   └── api.ts             # API client functions
+├── prisma/
+│   └── schema.prisma      # Database schema
+```
+
+## Database Schema
+
+### User
+- id, name, email, password
+- relationships: topics, studyCards, feedback, learningPlans
+
+### Topic
+- id, title, description, userId
+- relationships: studyCards, learningPlans
+
+### StudyCard
+- id, question, answer, explanation, difficulty, topicId, userId
+- relationships: feedback
+
+### Feedback
+- id, cardId, userId, status, rating, notes, reviewedAt
+- Statuses: "understood", "needs_review", "incorrect"
+
+### LearningPlan
+- id, userId, topicId, planDate, cardIds, focusAreas
+- Generated daily based on feedback patterns
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/topics` | Create a new topic |
+| GET | `/api/topics?userId={id}` | Get all topics for user |
+| POST | `/api/cards/generate` | Generate study cards |
+| GET | `/api/cards?topicId={id}&userId={id}` | Get cards for topic |
+| POST | `/api/feedback/submit` | Submit feedback on a card |
+| GET | `/api/learning-plan?userId={id}` | Get daily learning plan |
+
+## Deployment
+
+### Deploy to Vercel
+
+1. Push your repository to GitHub
+2. Connect to Vercel
+3. Set environment variables in Vercel dashboard:
+   - `DATABASE_URL`
+   - `OPENAI_API_KEY`
+   - `NEXTAUTH_SECRET`
+
+4. Deploy
+
+### Database Options
+
+- **Vercel Postgres**: Fully managed PostgreSQL
+- **Railway**: Simple PostgreSQL hosting
+- **Neon**: Serverless PostgreSQL
+- **Local PostgreSQL**: For development
+
+## Future Enhancements
+
+- [ ] User authentication with NextAuth
+- [ ] Spaced repetition algorithm
+- [ ] Study statistics and analytics dashboard
+- [ ] Multi-language support
+- [ ] Study groups and collaborative learning
+- [ ] Mobile app (React Native)
+- [ ] Export study cards (CSV, PDF)
+- [ ] Custom card templates
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues or pull requests.
+
+## License
+
+MIT License - feel free to use this project as you wish.
+
+## Support
+
+For questions or issues, please create an issue in the repository.
+
+---
+
+**Happy Learning! 🎓**
